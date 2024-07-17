@@ -15,6 +15,11 @@ add_message_files(
         SystemStateFb.msg
         MotorMotionFb.msg
 )
+
+add_service_files(
+        FILES
+        CtrlMode.srv
+)
  
 # 3.生成消息时依赖于 std_msgs
 generate_messages(

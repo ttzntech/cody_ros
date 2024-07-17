@@ -5,13 +5,15 @@ namespace cody_driver
 {
     CODY::CODY()
     :nh("~")
-    ,length(17)
+    ,basic_cfg("basic")
+    ,length(16)
     ,LOOP_RATE(100)
     ,data_packet_start(0)
     ,buffer_s("")
     ,listener(&sp)
     ,initial_odom_flag(false)
     {
+        pose_cal_use_odom = basic_cfg.node_["pose_cal_use_odom"].as<bool>();
         initForROS();
         init_open_serial();
         mode_enable();
@@ -24,6 +26,8 @@ namespace cody_driver
       sp.writeData(bytes0, 16);
       
       std::cerr << "mode unable" << std::endl;
+
+      sp.close();
     }
 
     void CODY::mode_enable()
@@ -35,27 +39,37 @@ namespace cody_driver
       
       std::cerr << "mode enable" << std::endl;
     }
+
+    void CODY::read_logic(const ros::TimerEvent& e)
+    {
+        read_serial();
+        publish_topic();
+        calculate_pose();
+    }
+
+    void CODY::write_logic(const ros::TimerEvent& e)
+    {
+        spst_control();
+    }
+
     void CODY::run()
     {
-        ros::Rate loop_rate(LOOP_RATE);
-        while(ros::ok())
-        {
-            read_serial();
-            spst_control();
-            calculate_pose();
-            publish_topic();
-            ros::spinOnce();
-            loop_rate.sleep();
-        }
-        sp.close();
+        ros::Timer read_timer = nh.createTimer(ros::Duration(0.001), &CODY::read_logic, this);
+        ros::Timer write_timer = nh.createTimer(ros::Duration(0.01), &CODY::write_logic, this);
+
+        ros::spin();
+        return;
+
     }
+
+
     void CODY::initForROS()
     {
-        vel_sub = nh.subscribe<can_interfaces::CtrlCmd>("ctrl_cmd", 10, &CODY::sub_command,this);
-        cmd_feed_pub = nh.advertise<can_interfaces::CtrlCmd>("cmd_feed", 1);
-        odom_feed_pub = nh.advertise<can_interfaces::OdomFb>("odom_feed", 1);
-        motor_feed_pub = nh.advertise<can_interfaces::MotorMotionFb>("motor_feed", 1);
-        pose_feed_pub = nh.advertise<nav_msgs::Odometry>("pose_feed", 1);
+        vel_sub = nh.subscribe<cody_msgs::CtrlCmd>("/cmd_vel", 10, &CODY::sub_command,this);
+        cmd_feed_pub = nh.advertise<cody_msgs::CtrlCmd>("/cmd_feed", 1);
+        odom_feed_pub = nh.advertise<cody_msgs::OdomFb>("/odom_feed", 1);
+        motor_feed_pub = nh.advertise<cody_msgs::MotorMotionFb>("/motor_motion_feed", 1);
+        pose_feed_pub = nh.advertise<nav_msgs::Odometry>("/pose_feed", 1);
     }
     void CODY::init_open_serial()
     {
@@ -117,39 +131,64 @@ namespace cody_driver
         }
     }
 
-    void CODY::calculate_pose()
+    void 
+    CODY::calculate_pose()
     {
-      if(initial_odom_flag == false)
+      double guess_calibration = static_cast<double>(my_cmd.ctrl_cmd_velocity) / static_cast<double>(cmd_feedback.ctrl_cmd_velocity);
+      if(initial_odom_flag == false && guess_calibration > 1 && guess_calibration < 3)
       {
         initial_odom = odom_feedback.odom_all;
         my_pose.pose.pose.position.x = 0;
         my_pose.pose.pose.position.y = 0;
         initial_odom_flag = true;
+        vel_multiple = static_cast<double>(my_cmd.ctrl_cmd_velocity) / static_cast<double>(cmd_feedback.ctrl_cmd_velocity);
+        steer_multiple = static_cast<double>(my_cmd.ctrl_cmd_steering) / static_cast<double>(cmd_feedback.ctrl_cmd_steering);
+        return;
       }
-      double wheelbase = 0.68;//轴距为0.68m
-      double v_now = cmd_feedback.ctrl_cmd_velocity *0.00066;
-      double steering_theta = cmd_feedback.ctrl_cmd_steering * 0.06 * M_PI / 180;
-      std::cerr << "steering_theta is " << steering_theta << std::endl;
-      my_pose.twist.twist.angular.x = v_now / wheelbase * tan(steering_theta);
-      std::cerr << "twist_angular is " << my_pose.twist.twist.angular.x << std::endl;
-      my_pose.twist.twist.angular.y = 0;
-      my_pose.twist.twist.angular.z = 0;
-      theta_now = theta_now + my_pose.twist.twist.angular.x * 0.01;
-      std::cerr << "theta_now is " << theta_now << std::endl;
-      std::cerr << "v_now is " << v_now << std::endl;
-      my_pose.twist.twist.linear.x = v_now * cos(theta_now);
-      my_pose.twist.twist.linear.y = v_now * sin(theta_now);
-      my_pose.pose.pose.orientation.w = cos(theta_now/2);
-      my_pose.pose.pose.orientation.x = 0;
-      my_pose.pose.pose.orientation.y = 0;
-      my_pose.pose.pose.orientation.z = sin(theta_now/2);
-      int odom_now = odom_feedback.odom_all - initial_odom;
-      my_pose.pose.pose.position.x += my_pose.twist.twist.linear.x * 0.01;
-      my_pose.pose.pose.position.y += my_pose.twist.twist.linear.y * 0.01;
-      std::cerr << "positiony is " << my_pose.pose.pose.position.y << std::endl;
-      my_pose.pose.pose.position.z = 0;
-      
-      
+      else
+      {
+        double wheelbase = 0.68;//轴距为0.68m
+        //标定反馈与输入
+
+        cmd_feedback.ctrl_cmd_velocity = static_cast<int16_t>(cmd_feedback.ctrl_cmd_velocity * 1.51);
+        cmd_feedback.ctrl_cmd_steering = static_cast<int16_t>(cmd_feedback.ctrl_cmd_steering * 2.00); 
+        
+        double v_now = cmd_feedback.ctrl_cmd_velocity / 3000.0;
+        double steering_theta = cmd_feedback.ctrl_cmd_steering * 0.06 * M_PI / 180;
+        std::cerr << "steering_theta is " << steering_theta << std::endl;
+        my_pose.twist.twist.angular.x = v_now / wheelbase * tan(steering_theta);
+        std::cerr << "twist_angular is " << my_pose.twist.twist.angular.x << std::endl;
+        my_pose.twist.twist.angular.y = 0;
+        my_pose.twist.twist.angular.z = 0;
+        theta_now = theta_now + my_pose.twist.twist.angular.x * 0.01;
+        std::cerr << "theta_now is " << theta_now << std::endl;
+        std::cerr << "v_now is " << v_now << std::endl;
+        my_pose.twist.twist.linear.x = v_now * cos(theta_now);
+        my_pose.twist.twist.linear.y = v_now * sin(theta_now);
+        my_pose.pose.pose.orientation.w = cos(theta_now/2);
+        my_pose.pose.pose.orientation.x = 0;
+        my_pose.pose.pose.orientation.y = 0;
+        my_pose.pose.pose.orientation.z = sin(theta_now/2);
+
+        odom_feedback.odom_all = odom_feedback.odom_all - initial_odom;
+        int increment_odom = odom_feedback.odom_all - last_frame_odom;        
+        last_frame_odom = odom_feedback.odom_all;
+
+        if(pose_cal_use_odom)
+        {
+          my_pose.pose.pose.position.x += increment_odom * cos(theta_now);
+          my_pose.pose.pose.position.y += increment_odom * sin(theta_now);
+          my_pose.pose.pose.position.z = 0;
+        }
+        else
+        {
+          my_pose.pose.pose.position.x += my_pose.twist.twist.linear.x * 0.01;
+          my_pose.pose.pose.position.y += my_pose.twist.twist.linear.y * 0.01;
+          std::cerr << "positiony is " << my_pose.pose.pose.position.y << std::endl;
+          my_pose.pose.pose.position.z = 0;
+        }
+
+      }
     }
 
 
@@ -206,9 +245,7 @@ namespace cody_driver
           {
             cmd_feedback.ctrl_cmd_velocity = (((uint8_t)std::stoi(buffer_s.substr(16 + data_packet_start, 2), nullptr, 16)) << 8 )| (uint8_t)std::stoi(buffer_s.substr(18 + data_packet_start, 2), nullptr, 16);
             cmd_feedback.ctrl_cmd_steering = (((uint8_t)std::stoi(buffer_s.substr(20 + data_packet_start, 2), nullptr, 16)) << 8 )| (uint8_t)std::stoi(buffer_s.substr(22 + data_packet_start, 2), nullptr, 16);
-            //标定反馈与输入
-            cmd_feedback.ctrl_cmd_velocity = static_cast<int16_t>(cmd_feedback.ctrl_cmd_velocity * 1.51);
-            cmd_feedback.ctrl_cmd_steering = static_cast<int16_t>(cmd_feedback.ctrl_cmd_steering * 2.38); 
+
           }
          
         }
@@ -217,7 +254,7 @@ namespace cody_driver
     }
 
     void
-    CODY::sub_command(const can_interfaces::CtrlCmd::ConstPtr& msg)
+    CODY::sub_command(const cody_msgs::CtrlCmd::ConstPtr& msg)
     {
         my_cmd.ctrl_cmd_velocity = msg->ctrl_cmd_velocity;
         
@@ -250,11 +287,11 @@ namespace cody_driver
       bytes0[8] = highByte_vel;
       bytes0[9] = lowByte_vel;
 
-       std::cout << "Bytes: ";
-       for (int i = 0 ; i < 16; i++) {
-           std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(bytes0[i]) << " ";
-       }
-       std::cout << std::endl;
+    // std::cout << "Bytes: ";
+    //   for (int i = 0 ; i < 16; i++) {
+    //       std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(bytes0[i]) << " ";
+    //   }
+    //   std::cout << std::endl;
 
 
       uint8_t highByte_angle = (static_cast<uint16_t>(my_cmd.ctrl_cmd_steering) >> 8) & 0xFF;

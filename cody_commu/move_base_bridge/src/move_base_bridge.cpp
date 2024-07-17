@@ -1,9 +1,9 @@
 #include <ros/ros.h>
-#include "can_interfaces/CtrlCmd.h"
+#include "cody_msgs/CtrlCmd.h"
 #include "geometry_msgs/Twist.h"
 #include "math.h"
 
-can_interfaces::CtrlCmd my_cmd;
+cody_msgs::CtrlCmd my_cmd;
 
 void
 sub_move_base(const geometry_msgs::Twist::ConstPtr& msg)
@@ -18,8 +18,8 @@ int main(int argc, char *argv[])
     ros::init(argc, argv, "movebase_bridge");
     ros::NodeHandle nh;
     ros::Rate loop_rate(100);
-    ros::Publisher vel_pub = nh.advertise<can_interfaces::CtrlCmd>("ctrl_cmd", 1);
-    ros::Subscriber vel_sub = nh.subscribe<geometry_msgs::Twist>("cmd_vel", 10, sub_move_base);
+    ros::Publisher vel_pub = nh.advertise<cody_msgs::CtrlCmd>("/ctrl_cmd", 1);
+    ros::Subscriber vel_sub = nh.subscribe<geometry_msgs::Twist>("/cmd_vel", 10, sub_move_base);
 
     while(ros::ok())
     {

@@ -1,0 +1,9 @@
+# 0表示上装控制(也可用于上装数据回放)，1表示遥控数据记录，2表示遥控数据控制, 3表示暂停
+uint8 EXECUTE = 0
+uint8 RECORD = 1
+uint8 LOAD_RC_DATA = 2
+uint8 STOP = 3
+
+uint8 type #EXECUTE RECORD LOAD_RC_DATA STOP
+---
+string message

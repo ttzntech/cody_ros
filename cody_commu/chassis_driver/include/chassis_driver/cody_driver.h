@@ -7,14 +7,15 @@
 #include "CSerialPort/SerialPort.h"
 #include "CSerialPort/SerialPortInfo.h"
 
-#include "can_interfaces/CtrlCmd.h"
-#include "can_interfaces/OdomFb.h"
-#include "can_interfaces/MotorMotionFb.h"
+#include "cody_msgs/CtrlCmd.h"
+#include "cody_msgs/OdomFb.h"
+#include "cody_msgs/MotorMotionFb.h"
 #include "nav_msgs/Odometry.h"
 #include <chrono>
 #include <vector>
 #include <deque>
 #include <string>
+#include <chassis_driver/config_loader.h>
 using namespace itas109;
 using namespace std::chrono_literals;
 namespace cody_driver
@@ -83,6 +84,8 @@ namespace cody_driver
         ros::NodeHandle nh;
         //变量
         CSerialPort sp;
+        ConfigLoader basic_cfg;
+        bool pose_cal_use_odom;
         int length;//单个信息长度
         int LOOP_RATE;
         int data_packet_start;//单个信息长度
@@ -97,25 +100,30 @@ namespace cody_driver
         //监听取出的字符串
         std::string buffer_s;
         //维护一个从控制节点下发的command，每次订阅更新这个数值。
-        can_interfaces::CtrlCmd my_cmd;
+        cody_msgs::CtrlCmd my_cmd;
         //发布的数据
-        can_interfaces::CtrlCmd cmd_feedback;
-        can_interfaces::OdomFb odom_feedback;
-        can_interfaces::MotorMotionFb my_motor_motion;
+        cody_msgs::CtrlCmd cmd_feedback;
+        cody_msgs::OdomFb odom_feedback;
+        cody_msgs::MotorMotionFb my_motor_motion;
         //维护的里程计
         nav_msgs::Odometry my_pose;
         double theta_now;
         int initial_odom;
+        int last_frame_odom;
         bool initial_odom_flag;
+        double vel_multiple;
+        double steer_multiple;
         //函数
         void initForROS();//初始化ROS
         void init_open_serial();//初始化并打开串口
         void read_serial();//对串口数据进行处理
         void spst_control();
         void publish_topic();
-        void sub_command(const can_interfaces::CtrlCmd::ConstPtr& msg);
+        void sub_command(const cody_msgs::CtrlCmd::ConstPtr& msg);
         void mode_enable();
         void calculate_pose();
+        void read_logic(const ros::TimerEvent& e);
+        void write_logic(const ros::TimerEvent& e);
     };
 
 }
