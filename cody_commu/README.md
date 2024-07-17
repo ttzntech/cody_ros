@@ -43,15 +43,7 @@ cody_commu
 
 ## 消息格式
 
-vel_sub = nh.subscribe<cody_msgs::CtrlCmd>("/cmd_vel", 10, &CODY::sub_command,this);
 
-cmd_feed_pub = nh.advertise<cody_msgs::CtrlCmd>("/cmd_feed", 1);
-
-odom_feed_pub = nh.advertise<cody_msgs::OdomFb>("/odom_feed", 1);
-
-motor_feed_pub = nh.advertise<cody_msgs::MotorMotionFb>("/motor_feed", 1);
-
-pose_feed_pub = nh.advertise<nav_msgs::Odometry>("/pose_feed", 1);
 
 ### 话题与消息格式
 
