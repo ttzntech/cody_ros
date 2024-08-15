@@ -1,0 +1,29 @@
+<!--
+ Created on Tue Aug 13 2024
+
+ Author: Joonchen Liau
+ Email: liaojuncheng123@foxmail.com
+
+ Copyright (c) 2024 Tiante Intelligent Technology
+-->
+
+<launch>
+    <arg name="pub_tf" default="true"/>
+    <arg name="base_frame" default="map"/>
+    <arg name="odom_frame" default="odom"/>
+
+    <arg name="rviz_config" value="$(find cody_startup)/rviz/default.rviz" />
+
+    <include file="$(find cody_chassis)/launch/cody_chassis.launch">
+        <arg name="pub_tf" value="$(arg pub_tf)"/>
+        <arg name="base_frame" value="$(arg base_frame)"/>
+        <arg name="odom_frame" value="$(arg odom_frame)"/>
+    </include>
+
+    <group ns="cody">
+        <node name="teleop_node" pkg="cody_control" type="teleop.py" output="screen"/>
+    </group>
+
+    <!-- Start RViz with a specific configuration file -->
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rviz_config)"/>
+</launch>

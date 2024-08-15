@@ -1,0 +1,21 @@
+<!--
+ Created on Tue Aug 13 2024
+
+ Author: Joonchen Liau
+ Email: liaojuncheng123@foxmail.com
+
+ Copyright (c) 2024 Tiante Intelligent Technology
+-->
+
+<launch>
+    <arg name="pub_tf" default="true"/>
+    <arg name="base_frame" default="map" />
+    <arg name="odom_frame" default="odom"/>
+
+    <group ns="cody">
+        <node name="cody_chassis_node" pkg="cody_chassis" type="cody_chassis_node" output="screen"/>
+        <param name="pub_tf" value="$(arg pub_tf)"/>
+        <param name="base_frame" value="$(arg base_frame)"/>
+        <param name="odom_frame" value="$(arg odom_frame)"/>
+    </group>
+</launch>
