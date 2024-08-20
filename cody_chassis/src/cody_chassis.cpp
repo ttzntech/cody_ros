@@ -82,11 +82,11 @@ void CODYDriver::run() {
 
         /* motor info feedback publisher */
         canTran.recv(ID_Motor1InfoFb);
-        motroInfoFbMsg.rpm_l = canTran.data.i251Motor1InfoFb.rpm;
-        motroInfoFbMsg.pos_l = canTran.data.i251Motor1InfoFb.pos;
+        motroInfoFbMsg.motor1_rpm = canTran.data.i251Motor1InfoFb.rpm;
+        motroInfoFbMsg.motor1_pos = canTran.data.i251Motor1InfoFb.pos;
         canTran.recv(ID_Motor2InfoFb);
-        motroInfoFbMsg.rpm_r = canTran.data.i252Motor2InfoFb.rpm;
-        motroInfoFbMsg.pos_r = canTran.data.i252Motor2InfoFb.pos;
+        motroInfoFbMsg.motor2_rpm = canTran.data.i252Motor2InfoFb.rpm;
+        motroInfoFbMsg.motor2_pos = canTran.data.i252Motor2InfoFb.pos;
         motorInfoFbPub.publish(motroInfoFbMsg);
 
         /* odom feedback publisher */

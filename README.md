@@ -15,10 +15,10 @@ $$ |      $$ |  $$ |$$ |  $$ |$$ |  $$ |      $$ |      $$ |  $$ | \____$$\
 [English Version](./READNE-en.md)
 
 ## 功能包
-- cody_chassis : cody 底盘控制功能包，主要接受和发布底层CAN信息。并发布自身里程计到 `/odom`话题下。 
-- cody_control : cody 控制功能包，实现一些控制算法。将控制命令发布到`/cmd_vel`话题下。
-- cody_msgs : cody 自定义消息类型。
-- cody_startup : 一些 launch file 和其他相关启动配置。
+- `cody_chassis` : cody 底盘控制功能包，主要接受和发布底层CAN信息。并发布自身里程计到 `/odom`话题下。 
+- `cody_control` : cody 控制功能包，实现一些控制算法。将控制命令发布到`/cmd_vel`话题下。
+- `cody_msgs` : cody 自定义消息类型。
+- `cody_startup` : 一些 launch file 和其他相关启动配置。
 
 ## 依赖及前置配置
 - 请确保在运行项目之前安装上 `ttzn_sdk`底层驱动。若没安装，请参考该 [README](https://github.com/ttzntech/ttzn_sdk/#安装底盘驱动) 进行该驱动的安装。
