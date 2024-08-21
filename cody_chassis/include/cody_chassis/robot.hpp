@@ -14,7 +14,7 @@
 
 
 class Robot {
-    double wheelbase_;  /* Distance between front and rear axle (meters) */
+    double wheelbase_;  /* Distance between front and rear axis (meters) */
 public:
     Robot (double wheelbase);
 

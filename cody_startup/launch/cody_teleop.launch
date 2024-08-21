@@ -11,6 +11,8 @@
     <arg name="pub_tf" default="true"/>
     <arg name="base_frame" default="map"/>
     <arg name="odom_frame" default="odom"/>
+    <arg name="dev_path" default="/dev/ttyUSB0"/>
+    <arg name="dev_type" default="usbttlcan"/>
 
     <arg name="rviz_config" value="$(find cody_startup)/rviz/default.rviz" />
 
@@ -18,6 +20,8 @@
         <arg name="pub_tf" value="$(arg pub_tf)"/>
         <arg name="base_frame" value="$(arg base_frame)"/>
         <arg name="odom_frame" value="$(arg odom_frame)"/>
+        <arg name="dev_path" value="$(arg dev_path)"/>
+        <arg name="dev_type" value="$(arg dev_type)"/>
     </include>
 
     <group ns="cody">

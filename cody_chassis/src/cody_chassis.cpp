@@ -12,10 +12,9 @@
 using namespace cody;
 
 
-CODYDriver::CODYDriver(std::string tty_path, int rate, DevType dev_type): 
+CODYDriver::CODYDriver(int rate): 
 robot(0.68),
 /* ROS related */
-canTran(std::move(tty_path), dev_type),
 nh(), 
 loopRate(rate),
 tfBroadcaster(),
@@ -34,11 +33,23 @@ odomPub(nh.advertise<nav_msgs::Odometry>("/odom", 10)),
 pub_tf(nh.param<bool>("pub_tf", false)),
 /* frame name*/
 base_frame(nh.param<std::string>("base_frame", "map")),
-odom_frame(nh.param<std::string>("odom_frame", "odom"))
+odom_frame(nh.param<std::string>("odom_frame", "odom")),
+/* CAN device */
+dev_path(nh.param<std::string>("dev_path", "/dev/ttyUSB0")),
+dev_type(nh.param<std::string>("dev_type", "usbttlcan"))
 {
-    /* config mode */
-    canTran.data.i421ModeCtrl.mode = cody::E421Mode::SPEED;
-    canTran.send(ID_ModeCtrl);
+    uint8_t dev_type_;
+    if (dev_type == "usbttlcan")
+        dev_type_ = 0;
+    else if(dev_type == "canable")
+        dev_type_ = 1;
+    else if (dev_type == "origin")
+        dev_type_ = 2;
+    else {
+        ROS_ERROR(" dev_type must be 'usbttlcan' 'canable' 'origin' !");
+        exit(-1);
+    }
+    canTran = CANTran(dev_path, static_cast<DevType>(dev_type_)); 
 
     /* odomMsg covariance matrix setup */
     odomMsg.pose.covariance = {
@@ -104,9 +115,7 @@ void CODYDriver::run() {
 }
 
 CODYDriver::~CODYDriver() {
-    /* de-config mode */
-    canTran.data.i421ModeCtrl.mode = cody::E421Mode::SPEED;
-    canTran.send(ID_ModeCtrl);
+
 }
 
 void CODYDriver::moveCtrlCallback(const cody_msgs::MoveCtrl& msg) {

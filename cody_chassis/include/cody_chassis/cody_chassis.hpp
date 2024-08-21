@@ -9,6 +9,7 @@
 
 #ifndef CODY_CHASSIS_H
 #define CODY_CHASSIS_H
+
 #include <ros/ros.h>
 #include <string>
 
@@ -70,9 +71,12 @@ class CODYDriver {
     /* frame name */
     std::string                     base_frame;
     std::string                     odom_frame;
+    /* CAN device */
+    std::string                     dev_path;
+    std::string                     dev_type;
 
 public:
-    CODYDriver(std::string tty_path="/dev/ttyUSB0", int rate=50, DevType dev_type=DevType::USB_TTL_CAN);
+    CODYDriver(int rate=50);
 
     void run();
 

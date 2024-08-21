@@ -11,11 +11,16 @@
     <arg name="pub_tf" default="true"/>
     <arg name="base_frame" default="map" />
     <arg name="odom_frame" default="odom"/>
+    <arg name="dev_path" default="/dev/ttyUSB0" />
+    <!-- dev_type is one of the 'usbttlcan' 'canable' 'origin' -->
+    <arg name="dev_type" default="usbtllcan"/> 
 
     <group ns="cody">
         <node name="cody_chassis_node" pkg="cody_chassis" type="cody_chassis_node" output="screen"/>
         <param name="pub_tf" value="$(arg pub_tf)"/>
         <param name="base_frame" value="$(arg base_frame)"/>
         <param name="odom_frame" value="$(arg odom_frame)"/>
+        <param name="dev_path" value="$(arg dev_path)"/>
+        <param name="dev_type" value="$(arg dev_type)"/>
     </group>
 </launch>

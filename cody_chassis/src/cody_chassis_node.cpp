@@ -14,7 +14,7 @@
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "cody_chassis_node");
-    CODYDriver cody_driver("/dev/ttyUSB0", 50, DevType::USB_TTL_CAN);
+    CODYDriver cody_driver;
     cody_driver.run();
 
     return 0;
