@@ -33,9 +33,6 @@ class CODYDriver {
     /* Robot Model */
     Robot                           robot;
     
-    /* CAN tran and recv */
-    cody::CANTran                   canTran;
-
     /* ROS related */
     ros::NodeHandle                 nh;
     ros::Rate                       loopRate;
@@ -73,7 +70,10 @@ class CODYDriver {
     std::string                     odom_frame;
     /* CAN device */
     std::string                     dev_path;
-    std::string                     dev_type;
+    uint8_t                         dev_type;
+
+    /* CAN tran and recv */
+    cody::CANTran                   canTran;
 
 public:
     CODYDriver(int rate=50);

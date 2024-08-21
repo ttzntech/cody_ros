@@ -36,20 +36,10 @@ base_frame(nh.param<std::string>("base_frame", "map")),
 odom_frame(nh.param<std::string>("odom_frame", "odom")),
 /* CAN device */
 dev_path(nh.param<std::string>("dev_path", "/dev/ttyUSB0")),
-dev_type(nh.param<std::string>("dev_type", "usbttlcan"))
+dev_type(nh.param("dev_type", 0)),
+canTran(dev_path, static_cast<DevType>(dev_type))
 {
-    uint8_t dev_type_;
-    if (dev_type == "usbttlcan")
-        dev_type_ = 0;
-    else if(dev_type == "canable")
-        dev_type_ = 1;
-    else if (dev_type == "origin")
-        dev_type_ = 2;
-    else {
-        ROS_ERROR(" dev_type must be 'usbttlcan' 'canable' 'origin' !");
-        exit(-1);
-    }
-    canTran = CANTran(dev_path, static_cast<DevType>(dev_type_)); 
+    ROS_INFO("dev_path: %s  dev_type: %hhu \n", dev_path.c_str(), dev_type);
 
     /* odomMsg covariance matrix setup */
     odomMsg.pose.covariance = {
