@@ -12,7 +12,14 @@ $$ |      $$ |  $$ |$$ |  $$ |$$ |  $$ |      $$ |      $$ |  $$ | \____$$\
                               \$$$$$$  |                                    
                                \______/  
 ```
-[English Version](./READNE-en.md)
+[English Version](./READNE-en.md) 
+
+## 软件环境
+- 架构：x86_64/arm64
+- 操作系统：Ubuntu 20.04
+- ROS 版本：Noetic
+
+该项目也应该可以在其他环境中工作，但只有上面列出的环境做过测试。
 
 ## 功能包
 - `cody_chassis` : cody 底盘控制功能包，主要接受和发布底层CAN信息。并发布自身里程计到 `/odom`话题下。 
@@ -27,7 +34,7 @@ $$ |      $$ |  $$ |$$ |  $$ |$$ |  $$ |      $$ |      $$ |  $$ | \____$$\
 ## 发布接受话题及参数
 ### 发布话题
 以下具体消息类型请查阅 `cody_msgs` 功能包。各参数含义请查阅 cody 用户使用手册。
-- `/cody/sys_status_fb` : 发布CAN底层反馈的系统状态。
+- `/cody/sys_status` : 发布CAN底层反馈的系统状态。
 - `/cody/move_ctrl_fb` : 发布CAN底层反馈的速度、转角。
 - `/cody/motor_info_fb` : 发布CAN底层返回的左右电机状态。
 - `/cody/odom_fb` : 发布CAN底层反馈的左右电机里程计。\
@@ -44,6 +51,9 @@ $$ |      $$ |  $$ |$$ |  $$ |$$ |  $$ |      $$ |      $$ |  $$ | \____$$\
 - `cody/pub_tf` : 是否发布 tf 变换。
 - `cody/base_frame` : tf 变换 base frame 名称，默认 `map`。
 - `cody/odom_frame` : tf 变换 odom frame 名称，默认 `odom`。
+- `/cody/dev_path` : CAN dev 的路径名称， 默认 `/dev/ttyUSB0`。
+- `/cody/dev_type` : CAN dev 的类型，默认 `0`。\
+*注：'0 -> usbttlcan'、 '1 -> canable'、 '2 -> origin'*
 
 ## 基础使用方法
 ### 编译该项目

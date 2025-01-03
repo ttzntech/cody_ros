@@ -41,6 +41,8 @@ canTran(dev_path, static_cast<DevType>(dev_type))
 {
     ROS_INFO("dev_path: %s  dev_type: %hhu \n", dev_path.c_str(), dev_type);
 
+    canTran.async_recv();
+
     /* odomMsg covariance matrix setup */
     odomMsg.pose.covariance = {
         0.001,      0.0,        0.0,        0.0,        0.0,        0.0,
@@ -67,7 +69,6 @@ void CODYDriver::run() {
         currentTime = currentTime_;
 
         /* sys status publisher */
-        canTran.recv(ID_SysStatus);
         sysStatusMsg.cur_status = canTran.data.i211SysStatus.cur_status;
         sysStatusMsg.ctrl_mode = canTran.data.i211SysStatus.ctrl_mode;
         sysStatusMsg.bat_vol = canTran.data.i211SysStatus.bat_vol;
@@ -76,22 +77,19 @@ void CODYDriver::run() {
         sysStatusPub.publish(sysStatusMsg);
 
         /* move ctrl feedback publisher */
-        canTran.recv(ID_MoveCtrlFb);
         moveCtrlFbMsg.speed = canTran.data.i221MoveCtrlFb.speed;
         moveCtrlFbMsg.corner = canTran.data.i221MoveCtrlFb.corner;
         moveCtrlFbPub.publish(moveCtrlFbMsg);
 
         /* motor info feedback publisher */
-        canTran.recv(ID_Motor1InfoFb);
         motroInfoFbMsg.motor1_rpm = canTran.data.i251Motor1InfoFb.rpm;
         motroInfoFbMsg.motor1_pos = canTran.data.i251Motor1InfoFb.pos;
-        canTran.recv(ID_Motor2InfoFb);
+
         motroInfoFbMsg.motor2_rpm = canTran.data.i252Motor2InfoFb.rpm;
         motroInfoFbMsg.motor2_pos = canTran.data.i252Motor2InfoFb.pos;
         motorInfoFbPub.publish(motroInfoFbMsg);
 
         /* odom feedback publisher */
-        canTran.recv(ID_OdomFb);
         odomFbMsg.left = canTran.data.i311OdomFb.left;
         odomFbMsg.right = canTran.data.i311OdomFb.right;
         odomFbPub.publish(odomFbMsg);

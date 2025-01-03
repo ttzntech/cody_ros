@@ -12,7 +12,7 @@
     <arg name="base_frame" default="map"/>
     <arg name="odom_frame" default="odom"/>
     <arg name="dev_path" default="/dev/ttyUSB0"/>
-    <arg name="dev_type" default="usbttlcan"/>
+    <arg name="dev_type" default="0"/>
 
     <arg name="rviz_config" value="$(find cody_startup)/rviz/default.rviz" />
 

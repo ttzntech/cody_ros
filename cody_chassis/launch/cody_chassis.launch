@@ -13,7 +13,7 @@
     <arg name="odom_frame" default="odom"/>
     <arg name="dev_path" default="/dev/ttyUSB0" />
     <!-- dev_type is one of the '0 -> usbttlcan' '1 -> canable' '2 -> origin' -->
-    <arg name="dev_type" default="2"/> 
+    <arg name="dev_type" default="0"/> 
 
     <group ns="cody">
         <node name="cody_chassis_node" pkg="cody_chassis" type="cody_chassis_node" output="screen"/>
